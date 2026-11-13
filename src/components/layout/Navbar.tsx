@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Heart, User, Store } from "lucide-react";
@@ -99,7 +100,7 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-surface border-b border-line flex items-center px-4 gap-3">
       {/* Wordmark */}
       <Link href="/" className="flex items-center gap-1.5 shrink-0">
-        <span className="w-2 h-2 rounded-full bg-accent" />
+        <Image src="/logo-icon.png" alt="" width={22} height={22} priority />
         <span className="text-[15px] font-black text-ink tracking-tight">Lumenbay</span>
       </Link>
 

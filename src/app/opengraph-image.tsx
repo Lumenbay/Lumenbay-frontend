@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const alt = "Lumenbay secure P2P marketplace preview";
@@ -7,7 +9,10 @@ export const size = {
 };
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image() {
+  const icon = await readFile(join(process.cwd(), "public/logo-icon.png"));
+  const iconSrc = `data:image/png;base64,${icon.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -35,21 +40,8 @@ export default function Image() {
               letterSpacing: "-0.04em",
             }}
           >
-            <div
-              style={{
-                width: "72px",
-                height: "72px",
-                borderRadius: "24px",
-                background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "34px",
-                fontWeight: 800,
-              }}
-            >
-              M
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse renders plain img only */}
+            <img src={iconSrc} alt="" width={72} height={72} />
             Lumenbay
           </div>
           <div
