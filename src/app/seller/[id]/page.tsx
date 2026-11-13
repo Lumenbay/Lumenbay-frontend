@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: seller.displayName,
     description:
-      seller.bio ?? `Items for sale from ${seller.displayName} on MarketXpress.`,
+      seller.bio ?? `Items for sale from ${seller.displayName} on Lumenbay.`,
   };
 }
 

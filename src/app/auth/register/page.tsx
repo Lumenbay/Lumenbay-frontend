@@ -91,7 +91,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex w-[42%] bg-ink flex-col justify-between p-10">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-accent" />
-          <span className="text-sm font-black text-white">MarketXpress</span>
+          <span className="text-sm font-black text-white">Lumenbay</span>
         </div>
         <div>
           <p className="text-3xl font-black text-white leading-tight tracking-tight mb-3">
@@ -99,10 +99,10 @@ export default function RegisterPage() {
           </p>
           <p className="text-sm text-ink-faint leading-relaxed">
             Whether you&apos;re buying the latest tech or selling handmade goods,
-            MarketXpress keeps every transaction safe with escrow smart contracts.
+            Lumenbay keeps every transaction safe with escrow smart contracts.
           </p>
         </div>
-        <p className="text-xs text-ink-muted">&copy; 2026 MarketXpress</p>
+        <p className="text-xs text-ink-muted">&copy; 2026 Lumenbay</p>
       </div>
 
       {/* Right panel */}
@@ -112,7 +112,7 @@ export default function RegisterPage() {
             <h1 className="text-2xl font-black text-ink tracking-tight mb-1">
               Create your account
             </h1>
-            <p className="text-sm text-ink-faint">Start trading on MarketXpress today</p>
+            <p className="text-sm text-ink-faint">Start trading on Lumenbay today</p>
           </div>
 
           {/* Role selector */}

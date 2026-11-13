@@ -1,4 +1,4 @@
-# Contributing to MarketX-frontend
+# Contributing to Lumenbay-frontend
 
 Thanks for wanting to contribute. This document is the single source of truth
 for how to set up, work on, and submit changes to this repository. If
@@ -23,8 +23,8 @@ anything here is out of date, fix it in the same PR that made it wrong.
 ## 2. Setup
 
 ```bash
-git clone git@github.com:MarketXpress/MarketX-frontend.git
-cd MarketX-frontend
+git clone git@github.com:Lumenbay/Lumenbay-frontend.git
+cd Lumenbay-frontend
 pnpm install
 cp .env.example .env.local   # fill in values if you need them - most have safe defaults
 pnpm dev

@@ -45,7 +45,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# MarketX Meta
+# Lumenbay Meta
 plan.md
 AGENTS.md
 CLAUDE.md

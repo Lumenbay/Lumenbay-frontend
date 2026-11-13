@@ -9,7 +9,7 @@ export default function HomeFooter() {
           <div>
             <div className="flex items-center gap-1.5 mb-3">
               <span className="w-2 h-2 rounded-full bg-accent" />
-              <span className="text-sm font-black text-ink">MarketXpress</span>
+              <span className="text-sm font-black text-ink">Lumenbay</span>
             </div>
             <p className="text-xs text-ink-faint leading-relaxed">
               The safest way to trade anything, peer-to-peer. Every purchase secured by Stellar smart contract escrow.
@@ -39,7 +39,7 @@ export default function HomeFooter() {
               {(
                 [
                   ["My Orders", "/dashboard/orders"],
-                  ["Sell on MX", "/dashboard/selling"],
+                  ["Sell on Lumenbay", "/dashboard/selling"],
                   ["Wallet", "/dashboard/wallet"],
                   ["Help", "/help"],
                 ] as [string, string][]
@@ -61,7 +61,7 @@ export default function HomeFooter() {
         </div>
 
         <div className="border-t border-line pt-6 text-center">
-          <p className="text-[11px] text-ink-faint">© 2026 MarketXpress. All rights reserved.</p>
+          <p className="text-[11px] text-ink-faint">© 2026 Lumenbay. All rights reserved.</p>
         </div>
       </div>
     </footer>
