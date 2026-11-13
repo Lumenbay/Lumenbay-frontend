@@ -100,17 +100,17 @@ function LoginForm() {
       <div className="hidden lg:flex w-[42%] bg-ink flex-col justify-between p-10">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-accent" />
-          <span className="text-sm font-black text-white">MarketXpress</span>
+          <span className="text-sm font-black text-white">Lumenbay</span>
         </div>
         <div>
           <p className="text-3xl font-black text-white leading-tight tracking-tight mb-3">
             &ldquo;Trade anything.<br />Risk nothing.&rdquo;
           </p>
           <p className="text-sm text-ink-faint leading-relaxed">
-            Every transaction on MarketXpress is secured by Stellar smart contract escrow. Your payment only releases when you confirm delivery.
+            Every transaction on Lumenbay is secured by Stellar smart contract escrow. Your payment only releases when you confirm delivery.
           </p>
         </div>
-        <p className="text-xs text-ink-muted">&copy; 2026 MarketXpress</p>
+        <p className="text-xs text-ink-muted">&copy; 2026 Lumenbay</p>
       </div>
 
       {/* Right panel */}
@@ -118,7 +118,7 @@ function LoginForm() {
         <div className="w-full max-w-sm">
           <div className="mb-7">
             <h1 className="text-2xl font-black text-ink tracking-tight mb-1">Welcome back</h1>
-            <p className="text-sm text-ink-faint">Sign in to your MarketXpress account</p>
+            <p className="text-sm text-ink-faint">Sign in to your Lumenbay account</p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">

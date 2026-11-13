@@ -6,7 +6,7 @@ import SellerListings from "@/components/selling/SellerListings";
 
 export const metadata: Metadata = {
   title: "Your listings",
-  description: "Manage the items you have for sale on MarketXpress.",
+  description: "Manage the items you have for sale on Lumenbay.",
 };
 
 export default function SellingDashboard() {

@@ -6,7 +6,7 @@ import ListingForm from "@/components/selling/ListingForm";
 
 export const metadata: Metadata = {
   title: "List an item",
-  description: "Put something up for sale on MarketXpress.",
+  description: "Put something up for sale on Lumenbay.",
 };
 
 export default function NewListingPage() {
@@ -27,7 +27,7 @@ export default function NewListingPage() {
           <h1 className="text-xl font-bold text-ink">List an item</h1>
           <p className="mb-5 mt-0.5 text-sm text-ink-muted">
             Buyers pay into escrow on Stellar. The money is released to you when they confirm
-            the item arrived — MarketXpress never holds it.
+            the item arrived — Lumenbay never holds it.
           </p>
 
           <ListingForm />

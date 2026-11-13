@@ -9,7 +9,7 @@ import MarketplaceLoadingState from "@/components/marketplace/MarketplaceLoading
 export const metadata: Metadata = {
   title: "Marketplace",
   description:
-    "Browse everything for sale on MarketXpress. Every purchase is held in Stellar escrow until the buyer confirms delivery.",
+    "Browse everything for sale on Lumenbay. Every purchase is held in Stellar escrow until the buyer confirms delivery.",
 };
 
 const PAGE_SIZE = 12;

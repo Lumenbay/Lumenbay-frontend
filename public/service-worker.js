@@ -16,15 +16,15 @@ self.addEventListener("push", (event) => {
       payload = event.data.json();
     } catch {
       payload = {
-        title: "MarketX alert",
+        title: "Lumenbay alert",
         body: event.data.text(),
       };
     }
   }
 
-  const title = payload.title || "MarketX alert";
+  const title = payload.title || "Lumenbay alert";
   const options = {
-    body: payload.body || "You have a new MarketX update.",
+    body: payload.body || "You have a new Lumenbay update.",
     icon: payload.icon || NOTIFICATION_ICON,
     badge: payload.badge || NOTIFICATION_ICON,
     tag: payload.tag || "marketx-update",

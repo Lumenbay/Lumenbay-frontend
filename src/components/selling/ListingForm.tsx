@@ -306,7 +306,7 @@ export default function ListingForm() {
                   <p className="text-sm font-medium text-ink">Add a payout address first</p>
                   <p className="text-xs text-ink-muted">
                     Escrow releases go straight from the contract to your Stellar account.
-                    MarketXpress never holds the money, so there is nowhere for it to wait if
+                    Lumenbay never holds the money, so there is nowhere for it to wait if
                     we do not know where to send it.
                   </p>
                 </div>

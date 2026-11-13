@@ -32,5 +32,5 @@ Redeploy after adding them; changing a variable alone does not republish.
 ## Schema
 
 The database schema, RLS policies and seed data live in the
-[`MarketX-supabase`](https://github.com/MarketXpress/MarketX-supabase)
+[`Lumenbay-supabase`](https://github.com/Lumenbay/Lumenbay-supabase)
 repository, not here. This project only consumes them.

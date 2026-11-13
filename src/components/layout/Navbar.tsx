@@ -100,7 +100,7 @@ export default function Navbar() {
       {/* Wordmark */}
       <Link href="/" className="flex items-center gap-1.5 shrink-0">
         <span className="w-2 h-2 rounded-full bg-accent" />
-        <span className="text-[15px] font-black text-ink tracking-tight">MarketXpress</span>
+        <span className="text-[15px] font-black text-ink tracking-tight">Lumenbay</span>
       </Link>
 
       {/* Search */}
@@ -127,7 +127,7 @@ export default function Navbar() {
           className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent transition-colors hover:bg-accent-hover"
         >
           <Store className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="hidden sm:inline">{user ? "Sell an item" : "Sell on MX"}</span>
+          <span className="hidden sm:inline">{user ? "Sell an item" : "Sell on Lumenbay"}</span>
           <span className="sm:hidden">Sell</span>
         </Link>
 

@@ -44,13 +44,13 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001",
   ),
   title: {
-    default: "MarketXpress | Secure P2P Marketplace",
-    template: "%s | MarketXpress",
+    default: "Lumenbay | Secure P2P Marketplace",
+    template: "%s | Lumenbay",
   },
   description:
     "The safest way to trade anything, peer-to-peer. Secured by Stellar smart contract escrow.",
   keywords: [
-    "MarketXpress",
+    "Lumenbay",
     "P2P marketplace",
     "escrow",
     "Stellar",
@@ -58,10 +58,10 @@ export const metadata: Metadata = {
     "XLM",
     "USDC",
   ],
-  applicationName: "MarketXpress",
-  authors: [{ name: "MarketXpress" }],
-  creator: "MarketXpress",
-  publisher: "MarketXpress",
+  applicationName: "Lumenbay",
+  authors: [{ name: "Lumenbay" }],
+  creator: "Lumenbay",
+  publisher: "Lumenbay",
   alternates: { canonical: "/" },
   robots: {
     index: true,
@@ -75,17 +75,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "MarketXpress | Secure P2P Marketplace",
+    title: "Lumenbay | Secure P2P Marketplace",
     description:
       "The safest way to trade anything, peer-to-peer. Secured by Stellar smart contract escrow.",
     url: "/",
-    siteName: "MarketXpress",
+    siteName: "Lumenbay",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "MarketXpress | Secure P2P Marketplace",
+    title: "Lumenbay | Secure P2P Marketplace",
     description:
       "The safest way to trade anything, peer-to-peer. Secured by Stellar smart contract escrow.",
   },
