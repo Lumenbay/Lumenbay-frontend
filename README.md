@@ -1,8 +1,8 @@
-# MarketX | Secure P2P Marketplace 🚀
+# Lumenbay | Secure P2P Marketplace 🚀
 
-MarketX is a state-of-the-art decentralized marketplace built on the **Stellar Network**. It leverages **Soroban Smart Contracts** to ensure trustless transactions through a secure escrow system, providing total peace of mind for both buyers and sellers.
+Lumenbay is a state-of-the-art decentralized marketplace built on the **Stellar Network**. It leverages **Soroban Smart Contracts** to ensure trustless transactions through a secure escrow system, providing total peace of mind for both buyers and sellers.
 
-![MarketX Preview](https://via.placeholder.com/1200x600/050505/3b82f6?text=MarketX+Premium+UI+Preview)
+![Lumenbay Preview](https://via.placeholder.com/1200x600/050505/3b82f6?text=Lumenbay+Premium+UI+Preview)
 
 ## ✨ Key Features
 
@@ -37,8 +37,8 @@ MarketX is a state-of-the-art decentralized marketplace built on the **Stellar N
 
 1. **Clone the repository**:
    ```bash
-   git clone git@github.com:MarketXpress/MarketX-frontend.git
-   cd MarketX-frontend
+   git clone git@github.com:Lumenbay/Lumenbay-frontend.git
+   cd Lumenbay-frontend
    ```
 
 2. **Install dependencies**:
@@ -77,4 +77,4 @@ This is an open-source project and we welcome contributions! See **[CONTRIBUTING
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
-Built with ❤️ by the **MarketX Laboratory** team.
+Built with ❤️ by the **Lumenbay** team.
