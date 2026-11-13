@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function HomeFooter() {
@@ -8,7 +9,7 @@ export default function HomeFooter() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-1.5 mb-3">
-              <span className="w-2 h-2 rounded-full bg-accent" />
+              <Image src="/logo-icon.png" alt="" width={20} height={20} />
               <span className="text-sm font-black text-ink">Lumenbay</span>
             </div>
             <p className="text-xs text-ink-faint leading-relaxed">

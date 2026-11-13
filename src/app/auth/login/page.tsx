@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -99,7 +100,7 @@ function LoginForm() {
       {/* Left panel */}
       <div className="hidden lg:flex w-[42%] bg-ink flex-col justify-between p-10">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-accent" />
+          <Image src="/logo-icon.png" alt="" width={20} height={20} />
           <span className="text-sm font-black text-white">Lumenbay</span>
         </div>
         <div>
