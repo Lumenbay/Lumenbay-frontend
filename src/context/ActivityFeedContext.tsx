@@ -22,6 +22,7 @@ interface ActivityFeedContextType {
   recordActivity: (activity: ActivityInput) => void;
   markAllAsRead: () => void;
   clearActivities: () => void;
+  refreshActivities: () => void;
 }
 
 const ActivityFeedContext = createContext<ActivityFeedContextType | undefined>(
@@ -54,6 +55,18 @@ export function ActivityFeedProvider({
     setActivities([]);
   }, []);
 
+  const refreshActivities = useCallback(() => {
+    setActivities(loadStoredActivities());
+  }, []);
+
+  useEffect(() => {
+    const onFocus = () => {
+      refreshActivities();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refreshActivities]);
+
   const unreadCount = activities.filter((item) => !item.isRead).length;
 
   const value = useMemo(
@@ -63,8 +76,9 @@ export function ActivityFeedProvider({
       recordActivity,
       markAllAsRead,
       clearActivities,
+      refreshActivities,
     }),
-    [activities, unreadCount, recordActivity, markAllAsRead, clearActivities],
+    [activities, unreadCount, recordActivity, markAllAsRead, clearActivities, refreshActivities],
   );
 
   return (

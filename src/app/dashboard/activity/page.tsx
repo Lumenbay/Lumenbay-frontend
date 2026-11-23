@@ -1,9 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
 import ActivityFeedPanel from "@/components/activity/ActivityFeedPanel";
 import ActivitySummaryCards from "@/components/activity/ActivitySummaryCards";
+import { useActivityFeed } from "@/context/ActivityFeedContext";
 
 export default function ActivityPage() {
+  const { markAllAsRead } = useActivityFeed();
+
+  useEffect(() => {
+    markAllAsRead();
+  }, [markAllAsRead]);
+
   return (
     <main className="min-h-screen bg-bg px-6 pb-20 pt-14">
       <div className="mx-auto max-w-6xl py-8">

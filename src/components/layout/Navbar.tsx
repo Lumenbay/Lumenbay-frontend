@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight,
+  Bell,
   Gavel,
   Heart,
   LayoutList,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useActivityFeed } from "@/context/ActivityFeedContext";
 import ThemeToggle from "./ThemeToggle";
 import NavWalletButton from "@/components/wallet/NavWalletButton";
 import ModeSwitch from "./ModeSwitch";
@@ -26,6 +28,7 @@ import { isStandalonePage } from "@/lib/standalonePages";
 import { useIsAdmin } from "@/lib/admin/useIsAdmin";
 
 const ACCOUNT_LINKS = [
+  { href: "/dashboard/activity", label: "Activity Feed", icon: Bell },
   { href: "/dashboard/buying", label: "My Purchases", icon: Package },
   { href: "/dashboard/selling", label: "Seller Hub", icon: LayoutList },
   { href: "/dashboard/selling/new", label: "List an Item", icon: Plus },
@@ -40,6 +43,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { unreadCount } = useActivityFeed();
   const isAdmin = useIsAdmin();
   const accountLinks = isAdmin ? [...ACCOUNT_LINKS, ADMIN_LINK] : ACCOUNT_LINKS;
   const [query, setQuery] = useState("");
@@ -230,13 +234,21 @@ export default function Navbar() {
               aria-expanded={accountOpen}
               aria-haspopup="menu"
               aria-controls="account-menu"
-              aria-label="Account menu"
+              aria-label={unreadCount > 0 ? `Account menu, ${unreadCount} unread notifications` : "Account menu"}
               onClick={() => setAccountOpen((v) => !v)}
               onKeyDown={handleAccountButtonKeyDown}
-              className="flex items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-surface-2 lg:pr-3"
+              className="relative flex items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-surface-2 lg:pr-3"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-linear-to-br from-[#E0483B] to-[#FFB4A2] text-xs font-bold text-white ring-2 ring-bg">
+              <span className="relative grid h-8 w-8 place-items-center rounded-full bg-linear-to-br from-[#E0483B] to-[#FFB4A2] text-xs font-bold text-white ring-2 ring-bg">
                 {(user.displayName || user.email).charAt(0).toUpperCase()}
+                {unreadCount > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white ring-2 ring-bg"
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </span>
               <span className="hidden max-w-[9rem] truncate text-xs font-semibold text-ink lg:inline">
                 {displayName}
@@ -268,10 +280,17 @@ export default function Navbar() {
                     role="menuitem"
                     tabIndex={-1}
                     onClick={() => setAccountOpen(false)}
-                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-muted hover:bg-surface-2 hover:text-ink focus:bg-surface-2 focus:text-ink focus:outline-none"
+                    className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-ink-muted hover:bg-surface-2 hover:text-ink focus:bg-surface-2 focus:text-ink focus:outline-none"
                   >
-                    <Icon className="h-4 w-4 text-ink-faint" aria-hidden />
-                    {label}
+                    <div className="flex items-center gap-2.5">
+                      <Icon className="h-4 w-4 text-ink-faint" aria-hidden />
+                      {label}
+                    </div>
+                    {href === "/dashboard/activity" && unreadCount > 0 && (
+                      <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-white">
+                        {unreadCount}
+                      </span>
+                    )}
                   </Link>
                 ))}
                 <div className="my-1 h-px bg-line" />
