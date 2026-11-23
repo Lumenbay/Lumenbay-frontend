@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, JetBrains_Mono, Syne } from "next/font/google";
+import { Figtree, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 /**
@@ -16,10 +17,25 @@ const figtree = Figtree({
 });
 
 /** Display face for headlines and the wordmark; body copy stays in Figtree. */
-const syne = Syne({
+const syne = localFont({
+  src: [
+    {
+      path: "./fonts/syne-latin-600.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "./fonts/syne-latin-700.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/syne-latin-800.woff2",
+      weight: "800",
+      style: "normal",
+    },
+  ],
   variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
   display: "swap",
 });
 
