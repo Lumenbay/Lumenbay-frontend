@@ -16,6 +16,7 @@ import {
   xlm,
 } from "@/components/orders/OrderParts";
 import SellerListings from "@/components/selling/SellerListings";
+import EarningsChart from "@/components/selling/EarningsChart";
 import { useAuth } from "@/context/AuthContext";
 import { useWallet } from "@/context/WalletContext";
 import { getPayoutAddress } from "@/lib/listings";
@@ -112,6 +113,9 @@ export default function SellerHub() {
               <button onClick={() => reload()} className="inline-flex items-center gap-1 text-xs font-bold"><RefreshCw className="h-3.5 w-3.5" /> Retry</button>
             </div>
           )}
+
+          <SectionLabel>Earnings</SectionLabel>
+          <EarningsChart orders={list} loading={loading} />
 
           {needsYou.length > 0 && (
             <>
