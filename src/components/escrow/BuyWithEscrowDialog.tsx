@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, ExternalLink, Loader2, Lock, ShieldCheck, Wallet, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useWallet } from "@/context/WalletContext";
@@ -32,10 +32,62 @@ export default function BuyWithEscrowDialog({ product, onClose }: { product: Pro
   const [hashes, setHashes] = useState<{ create?: string; fund?: string }>({});
   const [error, setError] = useState<string | null>(null);
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
   const price = product.xlmPrice;
   const fee = (price * STELLAR.feeBps) / 10_000;
   const busy = createState === "signing" || fundState === "signing";
   const done = fundState === "done";
+
+  // Remember the trigger element that opened the dialog and restore focus on close.
+  useEffect(() => {
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    return () => {
+      previouslyFocusedRef.current?.focus();
+    };
+  }, []);
+
+  // Trap keyboard focus within the dialog while it is open.
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+
+    const getFocusables = () =>
+      Array.from(
+        el.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+
+    const initial = getFocusables();
+    if (initial.length > 0) {
+      initial[0].focus();
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const focusables = getFocusables();
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first || !el.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !el.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    el.addEventListener("keydown", onKeyDown);
+    return () => el.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   useEffect(() => {
     getSellerProfile(createClient(), product.sellerId)
@@ -128,9 +180,24 @@ export default function BuyWithEscrowDialog({ product, onClose }: { product: Pro
     }
   };
 
+  const liveAnnouncement = (() => {
+    if (error) return `Error: ${error}`;
+    if (saveState === "error" && saveError) return `Order save error: ${saveError}`;
+    if (saveState === "signing") return "Checking payment on-chain and saving order…";
+    if (saveState === "done") return "Order placed successfully. View order.";
+    if (fundState === "signing") return "Locking payment into escrow… approve in your wallet.";
+    if (fundState === "done") return "Payment locked into escrow.";
+    if (createState === "signing") return "Creating escrow on-chain… approve in your wallet.";
+    if (createState === "done") return "Escrow created.";
+    return "";
+  })();
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="buy-title">
+    <div ref={dialogRef} className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="buy-title">
       <div className="w-full max-w-md overflow-hidden rounded-t-3xl border border-line bg-surface shadow-2xl sm:rounded-3xl">
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {liveAnnouncement}
+        </div>
         <div className="relative overflow-hidden bg-[linear-gradient(135deg,#1A0907_0%,#8C2A20_55%,#FF7A59_100%)] px-6 pb-5 pt-6 text-white">
           <button onClick={onClose} disabled={busy} className="absolute right-4 top-4 rounded-full p-1.5 text-white/80 hover:bg-white/10 disabled:opacity-40" aria-label="Close">
             <X className="h-4 w-4" />
@@ -162,7 +229,7 @@ export default function BuyWithEscrowDialog({ product, onClose }: { product: Pro
                 <dd className="text-right text-ink-muted">Under 0.01 XLM</dd>
               </dl>
 
-              <ol className="flex flex-col gap-2">
+              <ol className="flex flex-col gap-2" aria-label="Escrow checkout steps">
                 <Step n={1} title="Create the escrow" body="Records the deal on-chain. No money moves yet." state={createState} hash={hashes.create} />
                 <Step n={2} title="Lock your payment" body="Moves the XLM into the contract until you confirm delivery." state={fundState} hash={hashes.fund} />
                 <Step
@@ -286,17 +353,30 @@ export default function BuyWithEscrowDialog({ product, onClose }: { product: Pro
 }
 
 function Step({ n, title, body, state, hash, busyText = "Approve in your wallet…" }: { n: number; title: string; body: string; state: StepState; hash?: string; busyText?: string }) {
+  const statusLabel =
+    state === "done" ? "completed" : state === "signing" ? "in progress" : state === "error" ? "failed" : "pending";
+
   return (
-    <li className={`flex items-start gap-3 rounded-xl border p-3 ${state === "done" ? "border-ok-line bg-ok-bg" : state === "error" ? "border-bad-line" : "border-line"}`}>
-      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-3 text-xs font-black text-ink">
+    <li
+      aria-current={state === "signing" ? "step" : undefined}
+      aria-label={`Step ${n}: ${title} (${statusLabel})`}
+      className={`flex items-start gap-3 rounded-xl border p-3 ${state === "done" ? "border-ok-line bg-ok-bg" : state === "error" ? "border-bad-line" : "border-line"}`}
+    >
+      <span aria-hidden="true" className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-3 text-xs font-black text-ink">
         {state === "signing" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : state === "done" ? <CheckCircle2 className="h-4 w-4 text-ok" /> : n}
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold text-ink">{title}</p>
         <p className="text-xs text-ink-muted">{state === "signing" ? busyText : body}</p>
         {hash && (
-          <a href={explorerTx(hash)} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-accent">
-            {hash.slice(0, 10)}…{hash.slice(-6)} <ExternalLink className="h-3 w-3" />
+          <a
+            href={explorerTx(hash)}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`View transaction ${hash.slice(0, 10)} on explorer`}
+            className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-accent"
+          >
+            {hash.slice(0, 10)}…{hash.slice(-6)} <ExternalLink className="h-3 w-3" aria-hidden="true" />
           </a>
         )}
       </div>
