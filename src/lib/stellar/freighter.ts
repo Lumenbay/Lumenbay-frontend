@@ -7,10 +7,22 @@ import {
 } from "@stellar/freighter-api";
 import { STELLAR } from "./config";
 
+declare global {
+  interface Window {
+    freighter?: boolean;
+  }
+}
+
 export class WalletError extends Error {}
+
+/** Checks whether the Freighter browser extension injected itself into the window. */
+function hasFreighterExtension(): boolean {
+  return typeof window !== "undefined" && Boolean(window.freighter);
+}
 
 /** True when the Freighter extension is installed in this browser. */
 export async function isFreighterInstalled(): Promise<boolean> {
+  if (!hasFreighterExtension()) return false;
   try {
     const res = await isConnected();
     return Boolean(res.isConnected);
@@ -21,6 +33,7 @@ export async function isFreighterInstalled(): Promise<boolean> {
 
 /** Address of an account this site already has permission for, without prompting. */
 export async function getConnectedAddress(): Promise<string | null> {
+  if (!hasFreighterExtension()) return null;
   try {
     const res = await getAddress();
     return res.error || !res.address ? null : res.address;
@@ -43,6 +56,7 @@ export async function connectFreighter(): Promise<string> {
 
 /** Whether Freighter is pointed at the network this app uses. */
 export async function isOnExpectedNetwork(): Promise<boolean> {
+  if (!hasFreighterExtension()) return false;
   try {
     const res = await getNetworkDetails();
     return !res.error && res.networkPassphrase === STELLAR.networkPassphrase;

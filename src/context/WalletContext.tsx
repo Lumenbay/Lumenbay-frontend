@@ -90,10 +90,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [isInstalled, onNetwork] = await Promise.all([isFreighterInstalled(), isOnExpectedNetwork()]);
+      const isInstalled = await isFreighterInstalled();
+      const onNetwork = isInstalled ? await isOnExpectedNetwork() : true;
       const saved = userId ? await getPayoutAddress(createClient(), userId).catch(() => null) : null;
       const known = userId ? [saved, remembered(userId)].filter((a): a is string => !!a) : [];
-      const freighterAddress = known.length ? await getConnectedAddress() : null;
+      const freighterAddress = isInstalled && known.length ? await getConnectedAddress() : null;
       if (cancelled) return;
       setInstalled(isInstalled);
       setNetworkOk(onNetwork);
@@ -109,7 +110,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [userId]);
 
   const refresh = useCallback(async () => {
-    const [isInstalled, onNetwork] = await Promise.all([isFreighterInstalled(), isOnExpectedNetwork()]);
+    const isInstalled = await isFreighterInstalled();
+    const onNetwork = isInstalled ? await isOnExpectedNetwork() : true;
     setInstalled(isInstalled);
     setNetworkOk(onNetwork);
     if (!address) return;
