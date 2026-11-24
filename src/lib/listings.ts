@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { usdToXlm } from "@/lib/money";
+import { usdToXlm, XLM_PER_USD } from "@/lib/money";
 import type { Product } from "@/lib/products";
 
 /**
@@ -35,6 +35,8 @@ export interface SellerListing {
   rating: number;
   reviewCount: number;
   createdAt: string;
+  xlmPrice: number;
+  updatedAt: string | null;
 }
 
 export interface SellerProfile {
@@ -250,8 +252,8 @@ export async function uploadListingImages(
 // ---------------------------------------------------------------------------
 
 const SELLER_LISTING_COLUMNS = `
-  id, name, description, usd_price, original_usd_price, discount_percent,
-  status, category_id, rating, review_count, created_at,
+  id, name, description, usd_price, original_usd_price, xlm_price, discount_percent,
+  status, category_id, rating, review_count, created_at, updated_at,
   categories:category_id ( name ),
   product_images ( url, position )
 `;
@@ -262,24 +264,27 @@ interface SellerListingRow {
   description: string | null;
   usd_price: string | number;
   original_usd_price: string | number | null;
+  xlm_price: string | number | null;
   discount_percent: number | null;
   status: ListingStatus;
   category_id: string | null;
   rating: string | number | null;
   review_count: number | null;
   created_at: string;
+  updated_at: string | null;
   categories: { name: string } | null;
   product_images: { url: string; position: number }[] | null;
 }
 
 function mapSellerListing(row: SellerListingRow): SellerListing {
   const images = [...(row.product_images ?? [])].sort((a, b) => a.position - b.position);
+  const usdPrice = toNumber(row.usd_price);
 
   return {
     id: row.id,
     name: row.name,
     description: row.description,
-    usdPrice: toNumber(row.usd_price),
+    usdPrice,
     originalUsdPrice:
       row.original_usd_price === null ? null : toNumber(row.original_usd_price),
     discountPercent: row.discount_percent ?? 0,
@@ -291,6 +296,8 @@ function mapSellerListing(row: SellerListingRow): SellerListing {
     rating: toNumber(row.rating),
     reviewCount: row.review_count ?? 0,
     createdAt: row.created_at,
+    xlmPrice: toNumber(row.xlm_price, usdToXlm(usdPrice)),
+    updatedAt: (row.updated_at as string | null) ?? null,
   };
 }
 
@@ -420,6 +427,83 @@ export async function getPayoutAddress(
 
   if (error) throw error;
   return (data?.stellar_address as string | null) ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// XLM Price Management
+// ---------------------------------------------------------------------------
+
+export function formatPriceSetDetails(listing: {
+  xlmPrice: number;
+  usdPrice: number;
+  createdAt: string;
+  updatedAt?: string | null;
+}): { dateText: string; rateText: string; displayText: string } {
+  const timestamp = listing.updatedAt || listing.createdAt;
+  const dateObj = new Date(timestamp);
+  const dateText = Number.isNaN(dateObj.getTime())
+    ? "Unknown date"
+    : dateObj.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+
+  const rate =
+    listing.usdPrice > 0
+      ? (listing.xlmPrice / listing.usdPrice).toFixed(2)
+      : XLM_PER_USD.toFixed(2);
+  const rateText = `${rate} XLM/USD`;
+  const displayText = `XLM price set on ${dateText} at ${rateText}`;
+
+  return { dateText, rateText, displayText };
+}
+
+export async function hasActiveOrders(
+  supabase: SupabaseClient,
+  listingId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, status")
+    .eq("product_id", listingId)
+    .in("status", ["pending", "paid"]);
+
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
+}
+
+export async function refreshListingXlmPrice(
+  supabase: SupabaseClient,
+  listingId: string,
+): Promise<{ oldXlmPrice: number; newXlmPrice: number }> {
+  const active = await hasActiveOrders(supabase, listingId);
+  if (active) {
+    throw new Error("Cannot refresh XLM price while an order is in progress.");
+  }
+
+  const { data: product, error: fetchError } = await supabase
+    .from("products")
+    .select("usd_price, xlm_price")
+    .eq("id", listingId)
+    .single();
+
+  if (fetchError) throw fetchError;
+  const usdPrice = toNumber(product.usd_price);
+  const oldXlmPrice = toNumber(product.xlm_price);
+  const newXlmPrice = usdToXlm(usdPrice);
+
+  const { error: updateError } = await supabase
+    .from("products")
+    .update({
+      xlm_price: newXlmPrice,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", listingId);
+
+  if (updateError) throw updateError;
+
+  return { oldXlmPrice, newXlmPrice };
 }
 
 /** Re-exported so a caller can hand a `SellerListing` to buyer-facing UI. */

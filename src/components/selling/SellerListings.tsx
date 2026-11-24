@@ -9,6 +9,7 @@ import {
   ImageOff,
   Loader2,
   PackagePlus,
+  RefreshCw,
   Star,
   Trash2,
 } from "lucide-react";
@@ -17,12 +18,15 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import {
   deleteListing,
+  formatPriceSetDetails,
   getSellerListings,
+  hasActiveOrders,
+  refreshListingXlmPrice,
   setListingStatus,
   type ListingStatus,
   type SellerListing,
 } from "@/lib/listings";
-import { formatUsd } from "@/lib/money";
+import { formatUsd, formatXlm, usdToXlm, XLM_PER_USD } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
@@ -43,6 +47,11 @@ export default function SellerListings() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<SellerListing | null>(null);
+  const [pendingRefresh, setPendingRefresh] = useState<{
+    listing: SellerListing;
+    oldXlmPrice: number;
+    newXlmPrice: number;
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -116,6 +125,67 @@ export default function SellerListings() {
     }
   }
 
+  async function handleRequestRefresh(listing: SellerListing) {
+    setBusyId(listing.id);
+    try {
+      const active = await hasActiveOrders(supabase, listing.id);
+      if (active) {
+        toast({
+          title: "Cannot refresh price",
+          description: "This listing has an active order in progress.",
+          variant: "error",
+        });
+        return;
+      }
+      const newXlmPrice = usdToXlm(listing.usdPrice);
+      setPendingRefresh({
+        listing,
+        oldXlmPrice: listing.xlmPrice,
+        newXlmPrice,
+      });
+    } catch {
+      toast({
+        title: "Could not verify order status",
+        description: "Try again in a moment.",
+        variant: "error",
+      });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function confirmRefresh() {
+    const item = pendingRefresh;
+    if (!item) return;
+
+    setPendingRefresh(null);
+    setBusyId(item.listing.id);
+    try {
+      await refreshListingXlmPrice(supabase, item.listing.id);
+      const nowIso = new Date().toISOString();
+      setListings((current) =>
+        current.map((l) =>
+          l.id === item.listing.id
+            ? { ...l, xlmPrice: item.newXlmPrice, updatedAt: nowIso }
+            : l,
+        ),
+      );
+      toast({
+        title: "XLM price refreshed",
+        description: `${item.listing.name} price updated to ${formatXlm(item.newXlmPrice)}.`,
+        variant: "success",
+      });
+    } catch (err: unknown) {
+      toast({
+        title: "Could not refresh price",
+        description: err instanceof Error ? err.message : "Try again in a moment.",
+        variant: "error",
+      });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   if (isAuthLoading || isLoading) {
     return (
       <div className="flex items-center justify-center rounded-lg border border-line bg-surface py-20 text-sm text-ink-muted">
@@ -179,9 +249,23 @@ export default function SellerListings() {
         onCancel={() => setPendingDelete(null)}
       />
 
+      <ConfirmModal
+        isOpen={pendingRefresh !== null}
+        title="Refresh XLM price?"
+        description={
+          pendingRefresh
+            ? `Recalculate the XLM amount from the current exchange rate (${XLM_PER_USD} XLM/USD)? Old price: ${formatXlm(pendingRefresh.oldXlmPrice)}, New price: ${formatXlm(pendingRefresh.newXlmPrice)}.`
+            : ""
+        }
+        confirmLabel="Refresh price"
+        onConfirm={confirmRefresh}
+        onCancel={() => setPendingRefresh(null)}
+      />
+
       <ul className="space-y-2">
         {listings.map((listing) => {
           const isBusy = busyId === listing.id;
+          const priceDetails = formatPriceSetDetails(listing);
 
           return (
             <li
@@ -233,9 +317,20 @@ export default function SellerListings() {
                     {listing.imageCount} photo{listing.imageCount === 1 ? "" : "s"}
                   </span>
                 </div>
+                <p className="mt-1 text-[11px] text-ink-muted">
+                  {priceDetails.displayText} ({formatXlm(listing.xlmPrice)})
+                </p>
               </div>
 
               <div className="flex shrink-0 items-center gap-1">
+                <IconAction
+                  label="Refresh XLM price"
+                  onClick={() => handleRequestRefresh(listing)}
+                  disabled={isBusy}
+                >
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                </IconAction>
+
                 {listing.status === "active" ? (
                   <IconAction
                     label="Hide from the marketplace"
