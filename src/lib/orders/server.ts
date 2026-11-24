@@ -385,3 +385,22 @@ export async function markShipped(userId: string, id: bigint, note: string) {
   console.info("[lumenbay:orders] shipped", { escrow: id.toString(), seller: userId });
   return { orderId: row.order_id, state: "in_transit" as DbEscrowState };
 }
+
+export async function getEscrowPaymentEvents(userId: string, id: bigint) {
+  const admin = createAdminClient();
+  const row = await findEscrowRow(admin, id);
+  if (row && row.buyer_id !== userId && row.seller_id !== userId) {
+    throw new OrderApiError(403, "This order belongs to someone else.");
+  }
+
+  const { data, error } = await admin
+    .from("payment_events")
+    .select("id, step, failed_action, network, contract_id, chain_escrow_id, product_id, buyer_address, seller_address, amount_xlm, tx_hash, error_code, error_message, client_at, created_at")
+    .eq("contract_id", STELLAR.escrowContractId)
+    .eq("chain_escrow_id", id.toString())
+    .order("created_at", { ascending: true })
+    .limit(100);
+
+  if (error) throw new OrderApiError(500, error.message);
+  return { events: data ?? [] };
+}

@@ -11,6 +11,7 @@ export type PaymentStep =
   | "checkout_started"
   | "escrow_created"
   | "escrow_funded"
+  | "order_shipped"
   | "escrow_released"
   | "dispute_opened"
   | "step_failed";
@@ -138,4 +139,59 @@ export function unfundedEscrows(buyer: string, events: PaymentEvent[] = read()):
   return events
     .filter((e) => e.step === "escrow_created" && e.buyer === buyer && !funded.has(e.escrowId))
     .reverse();
+}
+
+/** Maps a row from `payment_events` table into `PaymentEvent`. */
+export function mapDbPaymentEvent(row: Record<string, unknown>): PaymentEvent {
+  return {
+    id: String(row.id || crypto.randomUUID()),
+    at: String(row.client_at || row.created_at || new Date().toISOString()),
+    step: (row.step as PaymentStep) || "escrow_created",
+    failedAction: (row.failed_action as PaymentEvent["failedAction"]) || undefined,
+    escrowId: row.chain_escrow_id ? String(row.chain_escrow_id) : undefined,
+    productId: row.product_id ? String(row.product_id) : undefined,
+    buyer: row.buyer_address ? String(row.buyer_address) : undefined,
+    seller: row.seller_address ? String(row.seller_address) : undefined,
+    amountXlm: row.amount_xlm != null ? Number(row.amount_xlm) : undefined,
+    txHash: row.tx_hash ? String(row.tx_hash) : undefined,
+    errorCode: row.error_code != null ? Number(row.error_code) : undefined,
+    errorMessage: row.error_message ? String(row.error_message) : undefined,
+    network: String(row.network || ""),
+    contractId: String(row.contract_id || ""),
+  };
+}
+
+/**
+ * Merges local browser journal with remote database events.
+ * Deduplicates by txHash (or id if no txHash), preserving error details and failures,
+ * and sorts all events by timestamp ascending (oldest first).
+ */
+export function mergePaymentEvents(
+  localEvents: PaymentEvent[],
+  remoteEvents: PaymentEvent[],
+): PaymentEvent[] {
+  const merged: PaymentEvent[] = [];
+  const seenTxHashes = new Set<string>();
+  const seenIds = new Set<string>();
+
+  for (const event of remoteEvents) {
+    if (event.txHash) {
+      seenTxHashes.add(event.txHash);
+    }
+    seenIds.add(event.id);
+    merged.push(event);
+  }
+
+  for (const event of localEvents) {
+    if (seenIds.has(event.id)) continue;
+    if (event.txHash && seenTxHashes.has(event.txHash)) continue;
+
+    if (event.txHash) {
+      seenTxHashes.add(event.txHash);
+    }
+    seenIds.add(event.id);
+    merged.push(event);
+  }
+
+  return merged.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 }

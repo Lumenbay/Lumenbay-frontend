@@ -21,7 +21,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useWallet } from "@/context/WalletContext";
 import { parseOrderTag } from "@/lib/orderTag";
-import { markOrderShipped, recordOrder, syncOrder } from "@/lib/orders/client";
+import { fetchEscrowPaymentEvents, markOrderShipped, recordOrder, syncOrder } from "@/lib/orders/client";
 import { getOrderByChainId, type OrderSummary } from "@/lib/orders/queries";
 import { createClient } from "@/lib/supabase/client";
 import { STELLAR, explorerAccount, explorerContract, explorerTx } from "@/lib/stellar/config";
@@ -39,7 +39,7 @@ import {
   type OnChainEscrow,
   type RefundReason,
 } from "@/lib/stellar/escrow";
-import { eventsForEscrow, recordPaymentEvent, type PaymentEvent } from "@/lib/stellar/paymentJournal";
+import { eventsForEscrow, mergePaymentEvents, recordPaymentEvent, type PaymentEvent } from "@/lib/stellar/paymentJournal";
 import { formatAddress } from "@/lib/utils";
 
 const TRACK = ["Created", "Funds locked", "Shipped", "Released"] as const;
@@ -100,7 +100,13 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : "Couldn't read this escrow from the network.");
     }
-    setJournal(eventsForEscrow(escrowId.toString()));
+    const local = eventsForEscrow(escrowId.toString());
+    setJournal(local);
+    fetchEscrowPaymentEvents(escrowId)
+      .then((remote) => {
+        setJournal(mergePaymentEvents(local, remote));
+      })
+      .catch(() => {});
     await loadOrder();
   }, [escrowId, loadOrder]);
 
@@ -162,7 +168,10 @@ export default function EscrowPage({ params }: { params: Promise<{ id: string }>
       const err = e instanceof EscrowError ? e : new EscrowError(String(e));
       recordPaymentEvent({ ...base, step: "step_failed", failedAction: action, errorCode: err.code, errorMessage: err.message });
       setActionError(err.message);
-      setJournal(eventsForEscrow(escrow.id.toString()));
+      const local = eventsForEscrow(escrow.id.toString());
+      fetchEscrowPaymentEvents(escrow.id)
+        .then((remote) => setJournal(mergePaymentEvents(local, remote)))
+        .catch(() => setJournal(local));
     } finally {
       setBusy(null);
     }
@@ -578,6 +587,7 @@ const STEP_LABEL: Record<PaymentEvent["step"], string> = {
   checkout_started: "Checkout started",
   escrow_created: "Escrow created",
   escrow_funded: "Funds locked",
+  order_shipped: "Item shipped",
   escrow_released: "Released to seller",
   dispute_opened: "Dispute opened",
   step_failed: "Step failed",

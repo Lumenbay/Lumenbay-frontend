@@ -1,5 +1,7 @@
 "use client";
 
+import { mapDbPaymentEvent, type PaymentEvent } from "@/lib/stellar/paymentJournal";
+
 /**
  * Browser calls to the order routes. The server re-checks everything against
  * the chain, so these only say which escrow to look at.
@@ -56,4 +58,29 @@ export function syncOrder(chainEscrowId: bigint, releaseTxHash?: string, dispute
 
 export function markOrderShipped(chainEscrowId: bigint, note: string): Promise<OrderResult> {
   return post<OrderResult>("/api/escrows/ship", { chainEscrowId: chainEscrowId.toString(), note });
+}
+
+export async function fetchEscrowPaymentEvents(
+  chainEscrowId: bigint | string,
+): Promise<PaymentEvent[]> {
+  try {
+    const res = await post<{ events: Record<string, unknown>[] }>("/api/escrows/events", {
+      chainEscrowId: chainEscrowId.toString(),
+    });
+    return (res.events ?? []).map(mapDbPaymentEvent);
+  } catch {
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const { STELLAR } = await import("@/lib/stellar/config");
+      const { data } = await createClient()
+        .from("payment_events")
+        .select("*")
+        .eq("contract_id", STELLAR.escrowContractId)
+        .eq("chain_escrow_id", chainEscrowId.toString())
+        .order("created_at", { ascending: true });
+      return (data ?? []).map(mapDbPaymentEvent);
+    } catch {
+      return [];
+    }
+  }
 }
